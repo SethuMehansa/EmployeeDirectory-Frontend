@@ -1,15 +1,18 @@
 <div class="max-w-5xl mx-auto p-6">
     <h2 class="text-3xl font-bold text-gray-800 mb-6">Employee Management</h2>
-  
-    <!-- Success & Error Messages -->
+    <button
+    (click)="downloadCsv()"
+    class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 mb-4"
+  >
+    Export CSV
+  </button>
     <div *ngIf="successMessage" class="bg-green-100 text-green-800 p-3 mb-4 rounded shadow">
       {{ successMessage }}
     </div>
     <div *ngIf="errorMessage" class="bg-red-100 text-red-800 p-3 mb-4 rounded shadow">
       {{ errorMessage }}
     </div>
-  
-    <!-- Search Bar + Department Filter -->
+ 
     <div class="flex space-x-2 mb-6">
       <input
         [(ngModel)]="searchTerm"
@@ -34,7 +37,6 @@
       </button>
     </div>
   
-    <!-- Add/Edit Form -->
     <div class="bg-white p-6 rounded-lg shadow">
       <h3 class="text-2xl font-semibold text-gray-800 mb-4">
         {{ isEditing ? 'Edit Employee' : 'Add Employee' }}
@@ -88,7 +90,6 @@
       </form>
     </div>
   
-    <!-- Employee List -->
     <div *ngIf="employees.length > 0" class="overflow-x-auto mt-6">
       <table class="min-w-full bg-white rounded-lg overflow-hidden shadow">
         <thead class="bg-gray-100">

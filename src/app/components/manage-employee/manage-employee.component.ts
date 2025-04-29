@@ -4,6 +4,7 @@ import { EmployeeService } from '../../service/employee.service';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { saveAs } from 'file-saver';
 
 @Component({
   selector: 'app-manage-employee',
@@ -29,8 +30,8 @@ export class ManageEmployeeComponent implements OnInit {
   }
 
   loadEmployees(): void {
-    this.employeeService.getAllEmployees().subscribe((employees: Employee[]) => {
-      this.employees = this.filterByDepartment(employees);
+    this.employeeService.getAllEmployees().subscribe((emps: Employee[]) => {
+      this.employees = this.filterByDepartment(emps);
     });
   }
 
@@ -40,8 +41,8 @@ export class ManageEmployeeComponent implements OnInit {
 
   addEmployee(): void {
     this.employeeService.createEmployee(this.employeeForm).subscribe({
-      next: (newEmployee: Employee) => {
-        this.employees.push(newEmployee);
+      next: (newEmp: Employee) => {
+        this.employees.push(newEmp);
         this.success('Employee added successfully.');
         this.resetForm();
       },
@@ -54,9 +55,9 @@ export class ManageEmployeeComponent implements OnInit {
     this.employeeService
       .updateEmployee(this.currentEmployeeId, this.employeeForm)
       .subscribe({
-        next: (updated: Employee) => {
+        next: (upd: Employee) => {
           const idx = this.employees.findIndex(e => e.id === this.currentEmployeeId);
-          this.employees[idx] = updated;
+          if (idx > -1) this.employees[idx] = upd;
           this.success('Employee updated successfully.');
           this.resetForm();
         },
@@ -72,32 +73,32 @@ export class ManageEmployeeComponent implements OnInit {
 
   searchEmployee(): void {
     if (!this.searchTerm && !this.selectedDepartment) {
-      return this.loadEmployees();
+      this.loadEmployees();
+      return;
     }
 
-    // First try by ID
     if (this.searchTerm) {
       this.employeeService.getEmployeeById(+this.searchTerm).subscribe({
-        next: emp => this.display([emp], `Employee found by ID.`),
-        error: () => this.searchByEmailOrShowNotFound()
+        next: emp => this.display([emp]),
+        error: () => this.searchByEmailOrNotFound()
       });
     } else {
-      // No searchTerm, just filter by department
       this.loadEmployees();
     }
   }
 
-  private searchByEmailOrShowNotFound(): void {
+  private searchByEmailOrNotFound(): void {
     this.employeeService.getEmployeeByEmail(this.searchTerm).subscribe({
-      next: emp => this.display([emp], `Employee found by Email.`),
-      error: () => this.display([], `Employee not found.`)
+      next: emp => this.display([emp]),
+      error: () => {
+        this.employees = [];
+        this.error('Employee not found.');
+      }
     });
   }
 
-  private display(list: Employee[], message: string): void {
+  private display(list: Employee[]): void {
     this.employees = this.filterByDepartment(list);
-    this.successMessage = list.length > 0 ? message : '';
-    this.errorMessage = list.length === 0 ? message : '';
     this.clearMessagesAfterDelay();
   }
 
@@ -124,6 +125,15 @@ export class ManageEmployeeComponent implements OnInit {
         this.success('Employee deleted successfully.');
       },
       error: () => this.error('Failed to delete employee.')
+    });
+  }
+
+  downloadCsv(): void {
+    this.employeeService.exportCsv().subscribe({
+      next: (blob: Blob) => {
+        saveAs(blob, 'employees.csv');
+      },
+      error: () => this.error('Failed to download CSV.')
     });
   }
 
