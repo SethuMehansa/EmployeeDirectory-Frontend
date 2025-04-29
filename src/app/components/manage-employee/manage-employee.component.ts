@@ -2,21 +2,25 @@ import { Component, OnInit } from '@angular/core';
 import { Employee } from '../../model/Employee';
 import { EmployeeService } from '../../service/employee.service';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-manage-employee',
   templateUrl: './manage-employee.component.html',
-  imports: [CommonModule,FormsModule,HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   styleUrls: ['./manage-employee.component.css']
 })
 export class ManageEmployeeComponent implements OnInit {
   employees: Employee[] = [];
-  employeeForm: Employee = new Employee('', '', '', undefined); 
+  employeeForm: Employee = new Employee('', '', '', undefined);
   searchTerm: string = '';
-  isEditing: boolean = false; 
-  currentEmployeeId: number | null = null; 
+  selectedDepartment: string = '';
+  isEditing: boolean = false;
+  currentEmployeeId: number | null = null;
+
+  successMessage: string = '';
+  errorMessage: string = '';
 
   constructor(private employeeService: EmployeeService) {}
 
@@ -25,81 +29,120 @@ export class ManageEmployeeComponent implements OnInit {
   }
 
   loadEmployees(): void {
-    this.employeeService.getAllEmployees().subscribe((employees:any) => {
-      this.employees = employees;
+    this.employeeService.getAllEmployees().subscribe((employees: Employee[]) => {
+      this.employees = this.filterByDepartment(employees);
     });
   }
 
   onSubmit(): void {
-    if (this.isEditing) {
-      this.updateEmployee();
-    } else {
-      this.addEmployee();
-    }
+    this.isEditing ? this.updateEmployee() : this.addEmployee();
   }
 
   addEmployee(): void {
-    this.employeeService.createEmployee(this.employeeForm).subscribe((newEmployee:any) => {
-      this.employees.push(newEmployee);
-      this.resetForm();
+    this.employeeService.createEmployee(this.employeeForm).subscribe({
+      next: (newEmployee: Employee) => {
+        this.employees.push(newEmployee);
+        this.success('Employee added successfully.');
+        this.resetForm();
+      },
+      error: () => this.error('Failed to add employee.')
     });
   }
 
   updateEmployee(): void {
-    if (this.currentEmployeeId) {
-      this.employeeService
-        .updateEmployee(this.currentEmployeeId, this.employeeForm)
-        .subscribe((updatedEmployee:any) => {
-          const index = this.employees.findIndex(
-            (emp) => emp.id === this.currentEmployeeId
-          );
-          this.employees[index] = updatedEmployee;
+    if (!this.currentEmployeeId) return;
+    this.employeeService
+      .updateEmployee(this.currentEmployeeId, this.employeeForm)
+      .subscribe({
+        next: (updated: Employee) => {
+          const idx = this.employees.findIndex(e => e.id === this.currentEmployeeId);
+          this.employees[idx] = updated;
+          this.success('Employee updated successfully.');
           this.resetForm();
-        });
-    }
+        },
+        error: () => this.error('Failed to update employee.')
+      });
   }
 
   resetForm(): void {
-    this.employeeForm = new Employee('', '', '', undefined); 
+    this.employeeForm = new Employee('', '', '', undefined);
     this.isEditing = false;
     this.currentEmployeeId = null;
   }
 
   searchEmployee(): void {
+    if (!this.searchTerm && !this.selectedDepartment) {
+      return this.loadEmployees();
+    }
+
+    // First try by ID
     if (this.searchTerm) {
-      this.employeeService.getEmployeeById(+this.searchTerm).subscribe(
-        (employee:any) => {
-          this.employees = [employee];
-        },
-        () => {
-          this.employeeService.getEmployeeByEmail(this.searchTerm).subscribe(
-            (employee:any) => {
-              this.employees = [employee];
-            },
-            () => {
-              this.employees = []; 
-            }
-          );
-        }
-      );
+      this.employeeService.getEmployeeById(+this.searchTerm).subscribe({
+        next: emp => this.display([emp], `Employee found by ID.`),
+        error: () => this.searchByEmailOrShowNotFound()
+      });
     } else {
-      this.loadEmployees(); 
+      // No searchTerm, just filter by department
+      this.loadEmployees();
     }
   }
 
-  editEmployee(employee: Employee): void {
-    this.employeeForm = { ...employee }; 
+  private searchByEmailOrShowNotFound(): void {
+    this.employeeService.getEmployeeByEmail(this.searchTerm).subscribe({
+      next: emp => this.display([emp], `Employee found by Email.`),
+      error: () => this.display([], `Employee not found.`)
+    });
+  }
+
+  private display(list: Employee[], message: string): void {
+    this.employees = this.filterByDepartment(list);
+    this.successMessage = list.length > 0 ? message : '';
+    this.errorMessage = list.length === 0 ? message : '';
+    this.clearMessagesAfterDelay();
+  }
+
+  private filterByDepartment(list: Employee[]): Employee[] {
+    return this.selectedDepartment
+      ? list.filter(emp => emp.department === this.selectedDepartment)
+      : list;
+  }
+
+  editEmployee(emp: Employee): void {
+    this.employeeForm = { ...emp };
     this.isEditing = true;
+    this.currentEmployeeId = emp.id ?? null;
   }
 
   deleteEmployee(id: number | undefined): void {
-    if (id !== undefined) {
-      this.employeeService.deleteEmployee(id).subscribe(() => {
-        this.employees = this.employees.filter((employee) => employee.id !== id);
-      });
-    } else {
-      console.error("Employee ID is undefined");
+    if (id == null) {
+      this.error('Employee ID is undefined');
+      return;
     }
+    this.employeeService.deleteEmployee(id).subscribe({
+      next: () => {
+        this.employees = this.employees.filter(e => e.id !== id);
+        this.success('Employee deleted successfully.');
+      },
+      error: () => this.error('Failed to delete employee.')
+    });
   }
-  
+
+  private success(msg: string) {
+    this.successMessage = msg;
+    this.errorMessage = '';
+    this.clearMessagesAfterDelay();
+  }
+
+  private error(msg: string) {
+    this.errorMessage = msg;
+    this.successMessage = '';
+    this.clearMessagesAfterDelay();
+  }
+
+  private clearMessagesAfterDelay(): void {
+    setTimeout(() => {
+      this.successMessage = '';
+      this.errorMessage = '';
+    }, 3000);
+  }
 }

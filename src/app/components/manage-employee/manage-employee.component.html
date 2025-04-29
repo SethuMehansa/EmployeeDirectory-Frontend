@@ -1,68 +1,76 @@
-<div class="container">
-    <div class="search-bar">
-      <input [(ngModel)]="searchTerm" placeholder="Search by ID or Email" class="form-control" />
-      <button (click)="searchEmployee()" class="btn btn-primary">Search</button>
+<div class="max-w-5xl mx-auto p-6">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6">Employee Management</h2>
+  
+    <!-- Success & Error Messages -->
+    <div *ngIf="successMessage" class="bg-green-100 text-green-800 p-3 mb-4 rounded shadow">
+      {{ successMessage }}
     </div>
- 
-    <div class="employee-list" *ngIf="employees.length > 0">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Department</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let employee of employees">
-            <td>{{ employee.id }}</td>
-            <td>{{ employee.name }}</td>
-            <td>{{ employee.email }}</td>
-            <td>{{ employee.department }}</td>
-            <td>
-              <button class="btn btn-info" (click)="editEmployee(employee)">Edit</button>
-              <button class="btn btn-danger" (click)="deleteEmployee(employee.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div *ngIf="errorMessage" class="bg-red-100 text-red-800 p-3 mb-4 rounded shadow">
+      {{ errorMessage }}
     </div>
- 
-    <div class="employee-form">
-      <h2>{{ isEditing ? 'Edit Employee' : 'Add Employee' }}</h2>
-      <form (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="name">Name:</label>
+  
+    <!-- Search Bar + Department Filter -->
+    <div class="flex space-x-2 mb-6">
+      <input
+        [(ngModel)]="searchTerm"
+        placeholder="Search by ID or Email"
+        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+      <select
+        [(ngModel)]="selectedDepartment"
+        class="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+      >
+        <option value="">All Departments</option>
+        <option value="HR">HR</option>
+        <option value="IT">IT</option>
+        <option value="Finance">Finance</option>
+        <option value="Operations">Operations</option>
+      </select>
+      <button
+        (click)="searchEmployee()"
+        class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+      >
+        Search
+      </button>
+    </div>
+  
+    <!-- Add/Edit Form -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h3 class="text-2xl font-semibold text-gray-800 mb-4">
+        {{ isEditing ? 'Edit Employee' : 'Add Employee' }}
+      </h3>
+      <form (ngSubmit)="onSubmit()" class="space-y-4">
+        <input type="hidden" [(ngModel)]="employeeForm.id" name="id" />
+  
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
           <input
-            id="name"
             type="text"
-            class="form-control"
             [(ngModel)]="employeeForm.name"
             name="name"
             required
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div class="form-group">
-          <label for="email">Email:</label>
+  
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input
-            id="email"
             type="email"
-            class="form-control"
             [(ngModel)]="employeeForm.email"
             name="email"
             required
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </div>
-        <div class="form-group">
-          <label for="department">Department:</label>
+  
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
           <select
-            id="department"
-            class="form-control"
             [(ngModel)]="employeeForm.department"
             name="department"
             required
+            class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
           >
             <option value="HR">HR</option>
             <option value="IT">IT</option>
@@ -70,10 +78,51 @@
             <option value="Operations">Operations</option>
           </select>
         </div>
-        <button type="submit" class="btn btn-success">
-          {{ isEditing ? 'Update Employee' : 'Add Employee' }}
+  
+        <button
+          type="submit"
+          class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition"
+        >
+          {{ isEditing ? 'Update' : 'Add' }} Employee
         </button>
       </form>
+    </div>
+  
+    <!-- Employee List -->
+    <div *ngIf="employees.length > 0" class="overflow-x-auto mt-6">
+      <table class="min-w-full bg-white rounded-lg overflow-hidden shadow">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="py-3 px-5 text-left text-sm font-medium text-gray-700">ID</th>
+            <th class="py-3 px-5 text-left text-sm font-medium text-gray-700">Name</th>
+            <th class="py-3 px-5 text-left text-sm font-medium text-gray-700">Email</th>
+            <th class="py-3 px-5 text-left text-sm font-medium text-gray-700">Department</th>
+            <th class="py-3 px-5 text-center text-sm font-medium text-gray-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let employee of employees" class="border-b hover:bg-gray-50">
+            <td class="py-3 px-5 text-sm text-gray-600">{{ employee.id }}</td>
+            <td class="py-3 px-5 text-sm text-gray-800">{{ employee.name }}</td>
+            <td class="py-3 px-5 text-sm text-gray-800">{{ employee.email }}</td>
+            <td class="py-3 px-5 text-sm text-gray-800">{{ employee.department }}</td>
+            <td class="py-3 px-5 text-sm text-center space-x-2">
+              <button
+                class="text-yellow-500 hover:text-yellow-600"
+                (click)="editEmployee(employee)"
+              >
+                Edit
+              </button>
+              <button
+                class="text-red-500 hover:text-red-600"
+                (click)="deleteEmployee(employee.id!)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
   
