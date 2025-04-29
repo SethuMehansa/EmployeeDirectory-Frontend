@@ -1,1 +1,79 @@
-<p>manage-employee works!</p>
+<div class="container">
+    <div class="search-bar">
+      <input [(ngModel)]="searchTerm" placeholder="Search by ID or Email" class="form-control" />
+      <button (click)="searchEmployee()" class="btn btn-primary">Search</button>
+    </div>
+ 
+    <div class="employee-list" *ngIf="employees.length > 0">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let employee of employees">
+            <td>{{ employee.id }}</td>
+            <td>{{ employee.name }}</td>
+            <td>{{ employee.email }}</td>
+            <td>{{ employee.department }}</td>
+            <td>
+              <button class="btn btn-info" (click)="editEmployee(employee)">Edit</button>
+              <button class="btn btn-danger" (click)="deleteEmployee(employee.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+ 
+    <div class="employee-form">
+      <h2>{{ isEditing ? 'Edit Employee' : 'Add Employee' }}</h2>
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="name">Name:</label>
+          <input
+            id="name"
+            type="text"
+            class="form-control"
+            [(ngModel)]="employeeForm.name"
+            name="name"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input
+            id="email"
+            type="email"
+            class="form-control"
+            [(ngModel)]="employeeForm.email"
+            name="email"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="department">Department:</label>
+          <select
+            id="department"
+            class="form-control"
+            [(ngModel)]="employeeForm.department"
+            name="department"
+            required
+          >
+            <option value="HR">HR</option>
+            <option value="IT">IT</option>
+            <option value="Finance">Finance</option>
+            <option value="Operations">Operations</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success">
+          {{ isEditing ? 'Update Employee' : 'Add Employee' }}
+        </button>
+      </form>
+    </div>
+  </div>
+  
