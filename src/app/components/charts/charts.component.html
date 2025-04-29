@@ -1,0 +1,30 @@
+<div class="max-w-4xl mx-auto p-6 bg-gray-900 min-h-screen text-white">
+    <a
+      routerLink="/manage-employee"
+      class="inline-block mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded transform transition-transform hover:scale-105"
+    >
+      Back to Management
+    </a>
+    <div class="bg-gray-800 p-6 rounded-lg shadow mb-8">
+      <h3 class="text-xl font-semibold text-white mb-4">Bar Chart: Employees per Department</h3>
+      <canvas
+        baseChart
+        [data]="barChartData"
+        [type]="barChartType"
+        [options]="barChartOptions"
+        class="w-full h-96"
+      ></canvas>
+    </div>
+  
+    <div class="bg-gray-800 p-6 rounded-lg shadow">
+      <h3 class="text-xl font-semibold text-white mb-4">Pie Chart: Employees per Department</h3>
+      <canvas
+        baseChart
+        [data]="pieChartData"
+        [type]="'pie'"
+        [options]="pieChartOptions"
+        class="w-full h-96"
+      ></canvas>
+    </div>
+  </div>
+  

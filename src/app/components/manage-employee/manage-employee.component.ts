@@ -5,11 +5,12 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { saveAs } from 'file-saver';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-manage-employee',
   templateUrl: './manage-employee.component.html',
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule,RouterLink],
   styleUrls: ['./manage-employee.component.css']
 })
 export class ManageEmployeeComponent implements OnInit {
@@ -102,7 +103,7 @@ export class ManageEmployeeComponent implements OnInit {
     this.clearMessagesAfterDelay();
   }
 
-  private filterByDepartment(list: Employee[]): Employee[] {
+  private filterByDepartment(list: Employee[]): Employee[] {  
     return this.selectedDepartment
       ? list.filter(emp => emp.department === this.selectedDepartment)
       : list;
